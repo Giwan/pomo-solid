@@ -11,12 +11,21 @@ import TimerDisplay from "./components/TimerDisplay";
 import TileButton from "./components/TileButton";
 import ConfigModal from "./components/ConfigModal";
 import useTimer from "./hooks/useTimer";
+import {
+  IconBreak,
+  IconLongBreak,
+  IconPause,
+  IconPlay,
+  IconReset,
+  IconSettings,
+  IconWork,
+} from "./components/icons";
 import "./App.css";
 
 const MODE_DEFINITIONS = [
-  { id: "work", label: "Work", icon: "🧠" },
-  { id: "break", label: "Break", icon: "🍵" },
-  { id: "longBreak", label: "Long Break", icon: "🌙" },
+  { id: "work", label: "Work", Icon: IconWork },
+  { id: "break", label: "Break", Icon: IconBreak },
+  { id: "longBreak", label: "Long Break", Icon: IconLongBreak },
 ] as const;
 
 type Mode = (typeof MODE_DEFINITIONS)[number]["id"];
@@ -66,7 +75,7 @@ const App: Component = () => {
       MODE_DEFINITIONS[0],
   );
 
-  const pauseIcon = createMemo(() => (isRunning() ? "⏸" : "▶️"));
+  const transportIcon = createMemo(() => (isRunning() ? IconPause : IconPlay));
   const pauseLabel = createMemo(() => (isRunning() ? "Pause" : "Resume"));
 
   const durationsInMinutes = createMemo(() => ({
@@ -145,44 +154,53 @@ const App: Component = () => {
         </header>
 
         <TimerDisplay minutes={minutes()} seconds={seconds()} />
+        <div class="tile-grid">
+          <div class="tile-grid mode-grid">
+            <For each={MODE_DEFINITIONS}>
+              {(mode) => {
+                const ModeIcon = mode.Icon;
+                return (
+                  <TileButton
+                    icon={<ModeIcon />}
+                    label={mode.label}
+                    intent={mode.id}
+                    variant="mode"
+                    active={activeMode() === mode.id}
+                    onClick={() => handleModeSelect(mode.id)}
+                  />
+                );
+              }}
+            </For>
+          </div>
 
-        <div class="tile-grid mode-grid">
-          <For each={MODE_DEFINITIONS}>
-            {(mode) => (
-              <TileButton
-                icon={mode.icon}
-                label={mode.label}
-                intent={mode.id}
-                variant="mode"
-                active={activeMode() === mode.id}
-                onClick={() => handleModeSelect(mode.id)}
-              />
-            )}
-          </For>
-        </div>
-
-        <div class="tile-grid action-grid">
-          <TileButton
-            icon={pauseIcon()}
-            label={pauseLabel()}
-            intent="neutral"
-            variant="action"
-            onClick={handlePauseToggle}
-          />
-          <TileButton
-            icon="🔄"
-            label="Reset"
-            intent="neutral"
-            variant="action"
-            onClick={handleReset}
-          />
-          <TileButton
-            icon="⚙️"
-            label="Config"
-            intent="neutral"
-            variant="action"
-            onClick={handleConfigOpen}
-          />
+          <div class="tile-grid action-grid">
+            {(() => {
+              const TransportIcon = transportIcon();
+              return (
+                <TileButton
+                  icon={<TransportIcon />}
+                  label={pauseLabel()}
+                  intent="neutral"
+                  variant="action"
+                  onClick={handlePauseToggle}
+                />
+              );
+            })()}
+            <TileButton
+              icon={<IconReset />}
+              label="Reset"
+              intent="neutral"
+              variant="action"
+              onClick={handleReset}
+            />
+            <TileButton
+              icon={<IconSettings />}
+              label="Config"
+              intent="neutral"
+              variant="action"
+              onClick={handleConfigOpen}
+            />
+          </div>
         </div>
       </div>
 
