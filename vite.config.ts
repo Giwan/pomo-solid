@@ -4,6 +4,7 @@ import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  base: "/pomo-solid/",
   plugins: [
     devtools(),
     solidPlugin(),
@@ -17,8 +18,8 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        scope: "/",
-        start_url: "/",
+        scope: "./",
+        start_url: "./",
         orientation: "portrait",
         icons: [
           {
