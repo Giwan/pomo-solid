@@ -133,7 +133,7 @@ type TField =
 
 function NumberInput(
   field: TField,
-  values,
+  values: () => ModalDurations,
   updateField: (
     field: keyof ModalDurations,
   ) => (event: InputEvent & { currentTarget: HTMLInputElement }) => void,
