@@ -11,6 +11,16 @@ interface TileButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: TileVariant;
 }
 
+const getClasses = (variant: TileVariant, active: boolean | undefined, className: string | undefined) =>
+  [
+    "tile-button",
+    `tile-button--${variant}`,
+    active ? "is-active" : "",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
 const TileButton: Component<TileButtonProps> = (props) => {
   const {
     icon,
@@ -22,21 +32,11 @@ const TileButton: Component<TileButtonProps> = (props) => {
     ...buttonProps
   } = props;
 
-  const getClasses = () =>
-    [
-      "tile-button",
-      `tile-button--${variant}`,
-      active ? "is-active" : "",
-      className ?? "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
   return (
     <button
       type="button"
       {...buttonProps}
-      class={getClasses()}
+      class={getClasses(variant, active, className)}
       data-intent={intent}
     >
       <span class="tile-icon" aria-hidden="true">

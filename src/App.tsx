@@ -142,16 +142,7 @@ const App: Component = () => {
   return (
     <div class="app-shell">
       <div class="timer-card">
-        <header class="timer-header">
-          <div class="header-titles">
-            <span class="eyebrow">Focus Flow</span>
-            <h1 class="header-title">Pomodoro</h1>
-          </div>
-          <div class="mode-chip" data-mode={currentMode().id}>
-            <span class="chip-dot" aria-hidden="true" />
-            <span>{currentMode().label}</span>
-          </div>
-        </header>
+        {PomHeader(currentMode)}
 
         <TimerDisplay minutes={minutes()} seconds={seconds()} />
         <div class="tile-grid">
@@ -216,3 +207,16 @@ const App: Component = () => {
 };
 
 export default App;
+
+function PomHeader(currentMode: () => { id: Mode, label: string }) {
+  return <header class="timer-header">
+    <div class="header-titles">
+      <span class="eyebrow">Focus Flow</span>
+      <h1 class="header-title">Pomodoro</h1>
+    </div>
+    <div class="mode-chip" data-mode={currentMode().id}>
+      <span class="chip-dot" aria-hidden="true" />
+      <span>{currentMode().label}</span>
+    </div>
+  </header>;
+}
