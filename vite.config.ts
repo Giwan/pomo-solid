@@ -9,8 +9,9 @@ export default defineConfig({
     devtools(),
     solidPlugin(),
     VitePWA({
+      base: "/pomo-solid/",
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "Solid Pomodoro",
         short_name: "SolidPom",
@@ -18,8 +19,8 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        scope: "./",
-        start_url: "./",
+        scope: "/pomo-solid/",
+        start_url: "/pomo-solid/",
         orientation: "portrait",
         icons: [
           {
@@ -39,6 +40,9 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
+      },
+      workbox: {
+        navigateFallback: "/pomo-solid/index.html",
       },
     }),
   ],
