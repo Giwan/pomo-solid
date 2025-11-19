@@ -4,12 +4,14 @@ import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  base: "/pomo-solid/",
   plugins: [
     devtools(),
     solidPlugin(),
     VitePWA({
+      base: "/pomo-solid/",
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "apple-touch-icon.png", "masked-icon.svg"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "Solid Pomodoro",
         short_name: "SolidPom",
@@ -17,8 +19,8 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        scope: "/",
-        start_url: "/",
+        scope: "/pomo-solid/",
+        start_url: "/pomo-solid/",
         orientation: "portrait",
         icons: [
           {
