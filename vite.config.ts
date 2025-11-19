@@ -9,7 +9,7 @@ export default defineConfig({
     solidPlugin(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png", "masked-icon.svg"],
       manifest: {
         name: "Solid Pomodoro",
         short_name: "SolidPom",
@@ -38,6 +38,9 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
+      },
+      devOptions: {
+        enabled: true,
       },
     }),
   ],
