@@ -1,149 +1,43 @@
-import {
-  Component,
-  For,
-  Show,
-  createMemo,
-  createRoot,
-  createSignal,
-  onCleanup,
-} from "solid-js";
+import { Component, For, Show } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import TimerDisplay from "./components/TimerDisplay";
 import TileButton from "./components/TileButton";
 import ConfigModal from "./components/ConfigModal";
 import ProgressBar from "./components/ProgressBar";
-import useTimer from "./hooks/useTimer";
+import PomHeader from "./components/PomHeader";
+import usePomodoro from "./hooks/usePomodoro";
+import { MODE_DEFINITIONS } from "./types";
 import {
-  IconBreak,
-  IconLongBreak,
-  IconPause,
-  IconPlay,
   IconReset,
   IconSettings,
-  IconWork,
 } from "./components/icons";
 import "./App.css";
 
-const MODE_DEFINITIONS = [
-  { id: "work", label: "Work", Icon: IconWork },
-  { id: "break", label: "Break", Icon: IconBreak },
-  { id: "longBreak", label: "Long Break", Icon: IconLongBreak },
-] as const;
-
-type Mode = (typeof MODE_DEFINITIONS)[number]["id"];
-
-type ModeDurations = Record<Mode, number>;
-type ModeMinutes = Record<Mode, number>;
-
-interface TimerHandle extends ReturnType<typeof useTimer> {
-  dispose: () => void;
-}
-
-const DEFAULT_DURATIONS: ModeDurations = {
-  work: 25 * 60,
-  break: 5 * 60,
-  longBreak: 15 * 60,
-};
-
-const makeTimer = (initialSeconds: number): TimerHandle => {
-  let dispose!: () => void;
-  const timer = createRoot((disposeFn) => {
-    dispose = disposeFn;
-    return useTimer(initialSeconds);
-  });
-
-  return { ...timer, dispose };
-};
-
 const App: Component = () => {
-  const [activeMode, setActiveMode] = createSignal<Mode>("work");
-  const [durations, setDurations] =
-    createSignal<ModeDurations>(DEFAULT_DURATIONS);
-  const [timerHandle, setTimerHandle] = createSignal<TimerHandle>(
-    makeTimer(DEFAULT_DURATIONS.work),
-  );
-  const [isConfigOpen, setIsConfigOpen] = createSignal(false);
-
-  onCleanup(() => timerHandle().dispose());
-
-  const time = () => timerHandle().time();
-  const minutes = createMemo(() => Math.floor(time() / 60));
-  const seconds = createMemo(() => time() % 60);
-  const isRunning = () => timerHandle().isActive();
-
-  const currentMode = createMemo(
-    () =>
-      MODE_DEFINITIONS.find((mode) => mode.id === activeMode()) ??
-      MODE_DEFINITIONS[0],
-  );
-
-  const transportIcon = createMemo(() => (isRunning() ? IconPause : IconPlay));
-  const pauseLabel = createMemo(() => (isRunning() ? "Pause" : "Resume"));
-
-  const durationsInMinutes = createMemo(() => ({
-    work: Math.round(durations().work / 60),
-    break: Math.round(durations().break / 60),
-    longBreak: Math.round(durations().longBreak / 60),
-  }));
-
-  const replaceTimer = (seconds: number, autoStart = false) => {
-    const previous = timerHandle();
-    previous.pause();
-    previous.dispose();
-
-    const next = makeTimer(seconds);
-    setTimerHandle(next);
-
-    if (autoStart && seconds > 0) {
-      queueMicrotask(() => next.start());
-    }
-  };
-
-  const handleModeSelect = (mode: Mode) => {
-    setActiveMode(mode);
-    replaceTimer(durations()[mode], true);
-  };
-
-  const handlePauseToggle = () => {
-    if (time() === 0) {
-      replaceTimer(durations()[activeMode()], true);
-      return;
-    }
-
-    if (isRunning()) {
-      timerHandle().pause();
-      return;
-    }
-
-    timerHandle().start();
-  };
-
-  const handleReset = () => {
-    timerHandle().reset();
-  };
-
-  const handleConfigSave = (minutesMap: ModeMinutes) => {
-    const nextDurations: ModeDurations = {
-      work: minutesMap.work * 60,
-      break: minutesMap.break * 60,
-      longBreak: minutesMap.longBreak * 60,
-    };
-
-    setDurations(nextDurations);
-    replaceTimer(nextDurations[activeMode()], false);
-    setIsConfigOpen(false);
-  };
-
-  const handleConfigCancel = () => setIsConfigOpen(false);
-
-  const handleConfigOpen = () => {
-    timerHandle().pause();
-    setIsConfigOpen(true);
-  };
+  const {
+    activeMode,
+    durations,
+    isConfigOpen,
+    minutes,
+    seconds,
+    isRunning,
+    currentMode,
+    transportIcon,
+    pauseLabel,
+    durationsInMinutes,
+    setMode,
+    togglePause,
+    resetTimer,
+    saveConfig,
+    closeConfig,
+    openConfig,
+    time,
+  } = usePomodoro();
 
   return (
     <div class="app-shell">
       <div class="timer-card">
-        {PomHeader(currentMode)}
+        <PomHeader currentMode={currentMode()} />
 
         <div class="timer-display-container">
           <TimerDisplay minutes={minutes()} seconds={seconds()} />
@@ -165,7 +59,7 @@ const App: Component = () => {
                   intent={mode.id}
                   variant="mode"
                   active={activeMode() === mode.id}
-                  onClick={() => handleModeSelect(mode.id)}
+                  onClick={() => setMode(mode.id)}
                 />
               );
             }}
@@ -173,31 +67,26 @@ const App: Component = () => {
         </div>
 
         <div class="tile-grid">
-          {(() => {
-            const TransportIcon = transportIcon();
-            return (
-              <TileButton
-                icon={<TransportIcon />}
-                label={pauseLabel()}
-                intent="neutral"
-                variant="action"
-                onClick={handlePauseToggle}
-              />
-            );
-          })()}
+          <TileButton
+            icon={<Dynamic component={transportIcon()} />}
+            label={pauseLabel()}
+            intent="neutral"
+            variant="action"
+            onClick={togglePause}
+          />
           <TileButton
             icon={<IconReset />}
             label="Reset"
             intent="neutral"
             variant="action"
-            onClick={handleReset}
+            onClick={resetTimer}
           />
           <TileButton
             icon={<IconSettings />}
             label="Config"
             intent="neutral"
             variant="action"
-            onClick={handleConfigOpen}
+            onClick={openConfig}
           />
         </div>
       </div>
@@ -205,8 +94,8 @@ const App: Component = () => {
       <Show when={isConfigOpen()}>
         <ConfigModal
           durations={durationsInMinutes()}
-          onCancel={handleConfigCancel}
-          onSave={handleConfigSave}
+          onCancel={closeConfig}
+          onSave={saveConfig}
         />
       </Show>
     </div>
@@ -214,16 +103,3 @@ const App: Component = () => {
 };
 
 export default App;
-
-function PomHeader(currentMode: () => { id: Mode, label: string }) {
-  return <header class="timer-header">
-    <div class="header-titles">
-      <span class="eyebrow">Focus Flow</span>
-      <h1 class="header-title">Pomodoro</h1>
-    </div>
-    <div class="mode-chip" data-mode={currentMode().id}>
-      <span class="chip-dot" aria-hidden="true" />
-      <span>{currentMode().label}</span>
-    </div>
-  </header>;
-}

@@ -7,12 +7,8 @@ import {
   onMount,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-
-type ModalDurations = {
-  work: number;
-  break: number;
-  longBreak: number;
-};
+import { ModalDurations } from "../types";
+import NumberInput from "./NumberInput";
 
 interface ConfigModalProps {
   durations: ModalDurations;
@@ -66,11 +62,10 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
 
   const updateField =
     (field: keyof ModalDurations) =>
-      (event: InputEvent & { currentTarget: HTMLInputElement }) => {
-        const nextValue = Number(event.currentTarget.value);
+      (value: number) => {
         setValues((prev) => ({
           ...prev,
-          [field]: Number.isNaN(nextValue) ? prev[field] : nextValue,
+          [field]: Number.isNaN(value) ? prev[field] : value,
         }));
       };
 
@@ -93,7 +88,13 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
           <form class="modal-form" onSubmit={handleSubmit}>
             <div class="modal-grid">
               <For each={INPUT_FIELDS}>
-                {(field) => NumberInput(field, values, updateField)}
+                {(field) => (
+                  <NumberInput
+                    field={field}
+                    value={values()[field.key]}
+                    onInput={updateField(field.key)}
+                  />
+                )}
               </For>
             </div>
             <ActionButtons onCancel={props.onCancel} />
@@ -135,47 +136,4 @@ function ActionButtons(props: ActionButtonsProps) {
       </button>
     </div>
   )
-}
-
-type TField =
-  | {
-    readonly key: "work";
-    readonly label: "Work Session";
-  }
-  | {
-    readonly key: "break";
-    readonly label: "Break";
-  }
-  | {
-    readonly key: "longBreak";
-    readonly label: "Long Break";
-  };
-
-function NumberInput(
-  field: TField,
-  values: () => ModalDurations,
-  updateField: (
-    field: keyof ModalDurations,
-  ) => (event: InputEvent & { currentTarget: HTMLInputElement }) => void,
-) {
-  return (
-    <div class="modal-row" style={{ display: "contents" }}>
-      <label class="modal-cell-label" for={`input-${field.key}`}>
-        {field.label}
-      </label>
-      <div class="modal-cell-input">
-        <input
-          id={`input-${field.key}`}
-          type="number"
-          min="1"
-          max="120"
-          step="1"
-          value={values()[field.key]}
-          onInput={updateField(field.key)}
-          inputMode="numeric"
-        />
-        <span class="input-suffix">min</span>
-      </div>
-    </div>
-  );
 }
