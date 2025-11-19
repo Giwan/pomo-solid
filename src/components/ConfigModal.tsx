@@ -159,19 +159,23 @@ function NumberInput(
   ) => (event: InputEvent & { currentTarget: HTMLInputElement }) => void,
 ) {
   return (
-    <label class="modal-row" for={`input-${field.key}`}>
-      <span>{field.label}</span>
-      <input
-        id={`input-${field.key}`}
-        type="number"
-        min="1"
-        max="120"
-        step="1"
-        value={values()[field.key]}
-        onInput={updateField(field.key)}
-        inputMode="numeric"
-      />
-      <span class="input-suffix">min</span>
-    </label>
+    <div class="modal-row" style={{ display: "contents" }}>
+      <label class="modal-cell-label" for={`input-${field.key}`}>
+        {field.label}
+      </label>
+      <div class="modal-cell-input">
+        <input
+          id={`input-${field.key}`}
+          type="number"
+          min="1"
+          max="120"
+          step="1"
+          value={values()[field.key]}
+          onInput={updateField(field.key)}
+          inputMode="numeric"
+        />
+        <span class="input-suffix">min</span>
+      </div>
+    </div>
   );
 }

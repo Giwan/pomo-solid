@@ -241,20 +241,33 @@
 }
 
 .modal-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--border-width);
+  background-color: var(--border-color);
+  border-top: var(--border-width) solid var(--border-color);
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.modal-cell-label {
+  background-color: var(--bg-color);
   padding: calc(var(--grid-unit) * 2);
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--grid-unit) * 2);
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
 }
 
-.modal-row {
+.modal-cell-input {
+  background-color: var(--bg-color);
+  padding: calc(var(--grid-unit) * 2);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: calc(var(--grid-unit) * 2);
+  justify-content: flex-end;
 }
 
-.modal-row input {
+.modal-cell-input input {
   background-color: var(--surface-color);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -266,7 +279,7 @@
   font-size: 1rem;
 }
 
-.modal-row input:focus {
+.modal-cell-input input:focus {
   outline: none;
   border-color: var(--accent-color);
 }
