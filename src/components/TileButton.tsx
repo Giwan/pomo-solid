@@ -1,48 +1,24 @@
 import { Component, JSX } from "solid-js";
 
-type TileIntent = "work" | "break" | "longBreak" | "neutral";
-type TileVariant = "mode" | "action";
-
-interface TileButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
+interface TileButtonProps {
   icon: JSX.Element;
   label: string;
+  intent: string;
+  variant: "mode" | "action";
   active?: boolean;
-  intent?: TileIntent;
-  variant?: TileVariant;
+  onClick: () => void;
 }
 
-const getClasses = (variant: TileVariant, active: boolean | undefined, className: string | undefined) =>
-  [
-    "tile-button",
-    `tile-button--${variant}`,
-    active ? "is-active" : "",
-    className ?? "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
 const TileButton: Component<TileButtonProps> = (props) => {
-  const {
-    icon,
-    label,
-    active,
-    intent = "neutral",
-    variant = "mode",
-    class: className,
-    ...buttonProps
-  } = props;
-
   return (
     <button
-      type="button"
-      {...buttonProps}
-      class={getClasses(variant, active, className)}
-      data-intent={intent}
+      class={`tile-button ${props.active ? "active" : ""}`}
+      onClick={props.onClick}
+      aria-label={props.label}
+      title={props.label}
     >
-      <span class="tile-icon" aria-hidden="true">
-        {icon}
-      </span>
-      <span class="tile-label">{label}</span>
+      <div class="tile-icon">{props.icon}</div>
+      <span class="tile-label">{props.label}</span>
     </button>
   );
 };

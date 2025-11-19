@@ -5,14 +5,14 @@ interface TimerDisplayProps {
   seconds: number;
 }
 
-const formatTime = (time: number) => time.toString().padStart(2, "0");
-
 const TimerDisplay: Component<TimerDisplayProps> = (props) => {
+  const format = (val: number) => val.toString().padStart(2, "0");
+
   return (
-    <div class="timer-display" aria-live="polite" aria-atomic="true">
-      <span class="timer-value">{formatTime(props.minutes)}</span>
+    <div class="timer-display">
+      <span class="timer-value">{format(props.minutes)}</span>
       <span class="timer-separator">:</span>
-      <span class="timer-value">{formatTime(props.seconds)}</span>
+      <span class="timer-value">{format(props.seconds)}</span>
     </div>
   );
 };

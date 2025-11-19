@@ -1,11 +1,48 @@
 :root {
-  font-family: "Space Mono", "Inter Tight", "IBM Plex Mono", "SFMono-Regular", "Segoe UI", sans-serif;
-  font-feature-settings: "tnum";
-  font-variant-numeric: tabular-nums;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Color Palette - Dark Mode */
+  --bg-color: #111111;
+  --text-color: #f0f0f0;
+  --accent-color: #ff4400;
+  --accent-dim: #ff440020;
+  --border-color: #333333;
+  --surface-color: #222222;
+  
+  /* Spacing & Layout */
+  --grid-unit: 8px;
+  --border-width: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  
+  /* Typography */
+  --font-mono: 'Roboto Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
+  font-family: var(--font-mono);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
 }

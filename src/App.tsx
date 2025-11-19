@@ -10,6 +10,7 @@ import {
 import TimerDisplay from "./components/TimerDisplay";
 import TileButton from "./components/TileButton";
 import ConfigModal from "./components/ConfigModal";
+import ProgressBar from "./components/ProgressBar";
 import useTimer from "./hooks/useTimer";
 import {
   IconBreak,
@@ -144,54 +145,60 @@ const App: Component = () => {
       <div class="timer-card">
         {PomHeader(currentMode)}
 
-        <TimerDisplay minutes={minutes()} seconds={seconds()} />
-        <div class="tile-grid">
-          <div class="tile-grid mode-grid">
-            <For each={MODE_DEFINITIONS}>
-              {(mode) => {
-                const ModeIcon = mode.Icon;
-                return (
-                  <TileButton
-                    icon={<ModeIcon />}
-                    label={mode.label}
-                    intent={mode.id}
-                    variant="mode"
-                    active={activeMode() === mode.id}
-                    onClick={() => handleModeSelect(mode.id)}
-                  />
-                );
-              }}
-            </For>
-          </div>
+        <div class="timer-display-container">
+          <TimerDisplay minutes={minutes()} seconds={seconds()} />
+          <ProgressBar 
+            totalSeconds={durations()[activeMode()]} 
+            currentSeconds={time()} 
+            isActive={isRunning()}
+          />
+        </div>
 
-          <div class="tile-grid action-grid">
-            {(() => {
-              const TransportIcon = transportIcon();
+        <div class="tile-grid">
+          <For each={MODE_DEFINITIONS}>
+            {(mode) => {
+              const ModeIcon = mode.Icon;
               return (
                 <TileButton
-                  icon={<TransportIcon />}
-                  label={pauseLabel()}
-                  intent="neutral"
-                  variant="action"
-                  onClick={handlePauseToggle}
+                  icon={<ModeIcon />}
+                  label={mode.label}
+                  intent={mode.id}
+                  variant="mode"
+                  active={activeMode() === mode.id}
+                  onClick={() => handleModeSelect(mode.id)}
                 />
               );
-            })()}
-            <TileButton
-              icon={<IconReset />}
-              label="Reset"
-              intent="neutral"
-              variant="action"
-              onClick={handleReset}
-            />
-            <TileButton
-              icon={<IconSettings />}
-              label="Config"
-              intent="neutral"
-              variant="action"
-              onClick={handleConfigOpen}
-            />
-          </div>
+            }}
+          </For>
+        </div>
+
+        <div class="tile-grid">
+          {(() => {
+            const TransportIcon = transportIcon();
+            return (
+              <TileButton
+                icon={<TransportIcon />}
+                label={pauseLabel()}
+                intent="neutral"
+                variant="action"
+                onClick={handlePauseToggle}
+              />
+            );
+          })()}
+          <TileButton
+            icon={<IconReset />}
+            label="Reset"
+            intent="neutral"
+            variant="action"
+            onClick={handleReset}
+          />
+          <TileButton
+            icon={<IconSettings />}
+            label="Config"
+            intent="neutral"
+            variant="action"
+            onClick={handleConfigOpen}
+          />
         </div>
       </div>
 
