@@ -1,7 +1,7 @@
 .app-shell {
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100%;
+  place-items: center;
+  min-height: 100vh;
   width: 100%;
   padding: calc(var(--grid-unit) * 2);
   gap: calc(var(--grid-unit) * 2);
@@ -12,13 +12,14 @@
 .timer-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
+  max-width: 400px;
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-md);
   background-color: var(--bg-color);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .timer-header {
@@ -80,26 +81,13 @@
   align-items: center;
   position: relative;
   width: 100%;
+  padding: calc(var(--grid-unit) * 4) 0;
 }
 
 /* Controls Grid */
-.controls-container {
+.controls-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--border-width);
-  background-color: var(--border-color);
-  border-top: var(--border-width) solid var(--border-color);
-}
-
-.control-group {
-  background-color: var(--bg-color);
-  display: flex;
-  flex-direction: column;
-}
-
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: var(--border-width);
   background-color: var(--border-color);
   border-top: var(--border-width) solid var(--border-color);
@@ -152,14 +140,19 @@
 }
 
 /* Responsive adjustments */
+/* Responsive adjustments */
 @media (min-width: 768px) {
   .app-shell {
-    max-width: 800px;
     padding: calc(var(--grid-unit) * 4);
   }
   
   .timer-card {
     border-width: 4px;
+    max-width: 480px;
+  }
+
+  .controls-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -182,22 +175,7 @@
   margin: 0 0.1em;
 }
 
-/* Progress Bar Styles */
-.progress-bar-container {
-  width: 100%;
-  height: 8px;
-  background-color: var(--surface-color);
-  border-radius: 999px;
-  margin-top: var(--grid-unit);
-  overflow: hidden;
-  /* Border removed as per request */
-}
 
-.progress-bar-fill {
-  height: 100%;
-  background-color: var(--accent-color);
-  transition: width 1s linear;
-}
 
 /* Modal Styles */
 .modal-backdrop {
@@ -321,4 +299,24 @@
 
 .modal-button--primary:hover {
   opacity: 0.9;
+}
+
+/* Progress Bar Styles */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: var(--surface-color);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: calc(var(--grid-unit) * 4);
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--text-color);
+  transition: width 1s linear;
+}
+
+.progress-bar.active {
+  background-color: var(--accent-color);
 }

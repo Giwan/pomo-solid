@@ -42,13 +42,13 @@ const App: Component = () => {
         <div class="timer-display-container">
           <TimerDisplay minutes={minutes()} seconds={seconds()} />
           <ProgressBar 
-            totalSeconds={durations()[activeMode()]} 
-            currentSeconds={time()} 
-            isActive={isRunning()}
+            total={durations()[activeMode()]} 
+            current={time()} 
+            active={isRunning()}
           />
         </div>
 
-        <div class="tile-grid">
+        <div class="controls-grid">
           <For each={MODE_DEFINITIONS}>
             {(mode) => {
               const ModeIcon = mode.Icon;
@@ -64,9 +64,6 @@ const App: Component = () => {
               );
             }}
           </For>
-        </div>
-
-        <div class="tile-grid">
           <TileButton
             icon={<Dynamic component={transportIcon()} />}
             label={pauseLabel()}

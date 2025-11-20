@@ -30,12 +30,26 @@ const makeTimer = (initialSeconds: number): TimerHandle => {
     return { ...timer, dispose };
 };
 
+const STORAGE_KEY = "pomodoro-durations";
+
+const getStoredDurations = (): ModeDurations => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        console.warn("Failed to load durations from localStorage", e);
+    }
+    return DEFAULT_DURATIONS;
+};
+
 export default function usePomodoro() {
     const [activeMode, setActiveMode] = createSignal<Mode>("work");
     const [durations, setDurations] =
-        createSignal<ModeDurations>(DEFAULT_DURATIONS);
+        createSignal<ModeDurations>(getStoredDurations());
     const [timerHandle, setTimerHandle] = createSignal<TimerHandle>(
-        makeTimer(DEFAULT_DURATIONS.work),
+        makeTimer(getStoredDurations().work),
     );
     const [isConfigOpen, setIsConfigOpen] = createSignal(false);
 
@@ -103,6 +117,12 @@ export default function usePomodoro() {
             break: minutesMap.break * 60,
             longBreak: minutesMap.longBreak * 60,
         };
+
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(nextDurations));
+        } catch (e) {
+            console.warn("Failed to save durations to localStorage", e);
+        }
 
         setDurations(nextDurations);
         replaceTimer(nextDurations[activeMode()], false);
