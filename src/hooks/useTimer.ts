@@ -1,12 +1,16 @@
-import { createSignal, createEffect, onCleanup } from "solid-js";
+import { createSignal, createEffect, onCleanup, untrack } from "solid-js";
 
 const useTimer = (initialTime: number) => {
   const [time, setTime] = createSignal(initialTime);
   const [isActive, setIsActive] = createSignal(false);
-  let interval: number;
+  let endTime = 0;
 
   const start = () => {
-    if (time() > 0) setIsActive(true);
+    const currentTime = untrack(time);
+    if (currentTime > 0) {
+      endTime = Date.now() + currentTime * 1000;
+      setIsActive(true);
+    }
   };
 
   const pause = () => setIsActive(false);
@@ -17,13 +21,18 @@ const useTimer = (initialTime: number) => {
   };
 
   createEffect(() => {
-    if (isActive() && time() > 0) {
-      interval = setInterval(() => setTime((t) => t - 1), 1000);
+    if (isActive()) {
+      const interval = setInterval(() => {
+        const remaining = Math.ceil((endTime - Date.now()) / 1000);
+
+        if (remaining <= 0) {
+          setTime(0);
+          setIsActive(false);
+        } else setTime(remaining);
+      }, 200);
+
+      onCleanup(() => clearInterval(interval));
     }
-
-    if (time() === 0) setIsActive(false);
-
-    onCleanup(() => clearInterval(interval));
   });
 
   return { time, isActive, start, pause, reset };
