@@ -4,12 +4,12 @@ import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base: "/pomo-solid/",
+  base: "/",
   plugins: [
     devtools(),
     solidPlugin(),
     VitePWA({
-      base: "/pomo-solid/",
+      base: "/",
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
@@ -19,8 +19,8 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        scope: "/pomo-solid/",
-        start_url: "/pomo-solid/",
+        scope: "/",
+        start_url: "/",
         orientation: "portrait",
         icons: [
           {
