@@ -20,14 +20,34 @@ const DEFAULT_DURATIONS: ModeDurations = {
     longBreak: 15 * 60,
 };
 
-const makeTimer = (initialSeconds: number): TimerHandle => {
+const makeTimer = (initialSeconds: number, onFinish?: () => void): TimerHandle => {
     let dispose!: () => void;
     const timer = createRoot((disposeFn) => {
         dispose = disposeFn;
-        return useTimer(initialSeconds);
+        return useTimer(initialSeconds, onFinish);
     });
 
     return { ...timer, dispose };
+};
+
+const STATE_STORAGE_KEY = "pomodoro-state";
+
+interface PomodoroState {
+    mode: Mode;
+    isRunning: boolean;
+    targetEndTime: number | null;
+    remainingTime: number;
+    lastUpdated: number;
+}
+
+const loadState = (): PomodoroState | null => {
+    try {
+        const stored = localStorage.getItem(STATE_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+    } catch (e) {
+        console.warn("Failed to load state", e);
+    }
+    return null;
 };
 
 const STORAGE_KEY = "pomodoro-durations";
@@ -45,12 +65,47 @@ const getStoredDurations = (): ModeDurations => {
 };
 
 export default function usePomodoro() {
-    const [activeMode, setActiveMode] = createSignal<Mode>("work");
+    const savedState = loadState();
+    const initialMode = savedState?.mode || "work";
+
+    const [activeMode, setActiveMode] = createSignal<Mode>(initialMode);
     const [durations, setDurations] =
         createSignal<ModeDurations>(getStoredDurations());
+
+    const onTimerFinish = () => {
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Pomodoro Timer", {
+                body: `${activeMode() === 'work' ? 'Work' : 'Break'} session finished!`,
+                icon: "/pwa-192x192.png"
+            });
+        }
+        localStorage.removeItem(STATE_STORAGE_KEY);
+    };
+
+    let initialTime = getStoredDurations()[initialMode];
+    let shouldAutoStart = false;
+
+    if (savedState) {
+        if (savedState.isRunning && savedState.targetEndTime) {
+            const remaining = Math.ceil((savedState.targetEndTime - Date.now()) / 1000);
+            if (remaining > 0) {
+                initialTime = remaining;
+                shouldAutoStart = true;
+            } else {
+                initialTime = 0;
+            }
+        } else {
+            initialTime = savedState.remainingTime;
+        }
+    }
+
     const [timerHandle, setTimerHandle] = createSignal<TimerHandle>(
-        makeTimer(getStoredDurations().work),
+        makeTimer(initialTime, onTimerFinish),
     );
+
+    if (shouldAutoStart) {
+        timerHandle().start();
+    }
     const [isConfigOpen, setIsConfigOpen] = createSignal(false);
 
     onCleanup(() => timerHandle().dispose());
@@ -75,16 +130,30 @@ export default function usePomodoro() {
         longBreak: Math.round(durations().longBreak / 60),
     }));
 
+    const saveState = (running: boolean, remaining: number) => {
+        const state: PomodoroState = {
+            mode: activeMode(),
+            isRunning: running,
+            targetEndTime: running ? Date.now() + remaining * 1000 : null,
+            remainingTime: remaining,
+            lastUpdated: Date.now(),
+        };
+        localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(state));
+    };
+
     const replaceTimer = (seconds: number, autoStart = false) => {
         const previous = timerHandle();
         previous.pause();
         previous.dispose();
 
-        const next = makeTimer(seconds);
+        const next = makeTimer(seconds, onTimerFinish);
         setTimerHandle(next);
 
         if (autoStart && seconds > 0) {
             queueMicrotask(() => next.start());
+            saveState(true, seconds);
+        } else {
+            saveState(false, seconds);
         }
     };
 
@@ -93,7 +162,15 @@ export default function usePomodoro() {
         replaceTimer(durations()[mode], true);
     };
 
+    const requestNotificationPermission = () => {
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+    };
+
     const togglePause = () => {
+        requestNotificationPermission();
+
         if (time() === 0) {
             replaceTimer(durations()[activeMode()], true);
             return;
@@ -101,14 +178,17 @@ export default function usePomodoro() {
 
         if (isRunning()) {
             timerHandle().pause();
+            saveState(false, time());
             return;
         }
 
         timerHandle().start();
+        saveState(true, time());
     };
 
     const resetTimer = () => {
         timerHandle().reset();
+        saveState(false, durations()[activeMode()]);
     };
 
     const saveConfig = (minutesMap: ModeMinutes) => {

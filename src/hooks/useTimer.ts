@@ -1,6 +1,6 @@
 import { createSignal, createEffect, onCleanup, untrack } from "solid-js";
 
-const useTimer = (initialTime: number) => {
+const useTimer = (initialTime: number, onFinish?: () => void) => {
   const [time, setTime] = createSignal(initialTime);
   const [isActive, setIsActive] = createSignal(false);
   let endTime = 0;
@@ -28,6 +28,7 @@ const useTimer = (initialTime: number) => {
         if (remaining <= 0) {
           setTime(0);
           setIsActive(false);
+          if (onFinish) onFinish();
         } else setTime(remaining);
       }, 200);
 
