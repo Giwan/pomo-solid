@@ -1,5 +1,5 @@
 import { Component } from "solid-js";
-import { ModalDurations, TField } from "../types";
+import { TField } from "../types";
 
 
 interface NumberInputProps {

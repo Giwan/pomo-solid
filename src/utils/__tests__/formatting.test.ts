@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatTimeSegment } from './formatting';
+import { formatTimeSegment } from '../formatting';
 
 describe('formatTimeSegment', () => {
     it('pads single digit numbers with a leading zero', () => {

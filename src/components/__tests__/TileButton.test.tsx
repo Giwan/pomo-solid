@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { describe, it, expect, vi } from 'vitest';
-import TileButton from './TileButton';
+import TileButton from '../TileButton';
 
 describe('TileButton', () => {
   it('renders with label and icon', () => {

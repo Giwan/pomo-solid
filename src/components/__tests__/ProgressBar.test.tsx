@@ -1,6 +1,6 @@
 import { render } from '@solidjs/testing-library';
 import { describe, it, expect } from 'vitest';
-import ProgressBar from './ProgressBar';
+import ProgressBar from '../ProgressBar';
 
 describe('ProgressBar', () => {
   it('calculates width correctly', () => {

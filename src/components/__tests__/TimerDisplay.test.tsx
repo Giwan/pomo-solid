@@ -1,6 +1,6 @@
 import { render, screen } from '@solidjs/testing-library';
 import { describe, it, expect } from 'vitest';
-import TimerDisplay from './TimerDisplay';
+import TimerDisplay from '../TimerDisplay';
 
 describe('TimerDisplay', () => {
   it('renders the time correctly', () => {
