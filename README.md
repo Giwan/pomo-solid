@@ -1,36 +1,86 @@
-## Usage
+# Basic Pomodoro
 
-Those templates dependencies are maintained via [pnpm](https://pnpm.io) via `pnpm up -Lri`.
+A minimalist, industrial-style Pomodoro timer built with [SolidJS](https://www.solidjs.com/) and [Vite](https://vitejs.dev/).
 
-This is the reason you see a `pnpm-lock.yaml`. That being said, any package manager will work. This file can be safely be removed once you clone a template.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![SolidJS](https://img.shields.io/badge/SolidJS-2c4f7c?style=flat&logo=solid&logoColor=white)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=flat&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
+
+## Features
+
+-   **Focus & Break Modes**: Easily switch between Focus (Work), Short Break, and Long Break modes.
+-   **Customizable Timers**: Configure the duration for each mode to suit your workflow.
+-   **Visual Progress**: A clean progress bar visualizes your remaining time.
+-   **Industrial Design**: Inspired by Teenage Engineering, featuring a sleek, high-contrast interface.
+-   **PWA Support**: Installable as a Progressive Web App (PWA) for offline use and native-like experience.
+-   **Responsive**: Optimized for both desktop and mobile devices.
+
+## Tech Stack
+
+-   **Framework**: SolidJS
+-   **Build Tool**: Vite
+-   **Language**: TypeScript
+-   **Styling**: CSS (Custom properties, responsive grid)
+-   **Icons**: Phosphor Icons
+-   **Testing**: Vitest
+
+## Getting Started
+
+### Prerequisites
+
+-   Node.js (LTS recommended)
+-   npm, pnpm, or yarn
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd basic-pom
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    # or
+    pnpm install
+    ```
+
+### Development
+
+Start the development server:
 
 ```bash
-$ npm install # or pnpm install or yarn install
+npm run dev
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+Open [http://localhost:3000](http://localhost:3000) (or the port shown in your terminal) to view the app.
 
-## Available Scripts
+### Building for Production
 
-In the project directory, you can run:
+Build the application for production:
 
-### `npm run dev` or `npm start`
+```bash
+npm run build
+```
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+The output will be in the `dist` directory, ready for deployment.
 
-The page will reload if you make edits.<br>
+### Testing
 
-### `npm run build`
+Run the test suite with Vitest:
 
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
+```bash
+npm test
+```
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+To run tests with coverage:
 
-## Deployment
+```bash
+npm run test:coverage
+```
 
-You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+## License
 
-## This project was created with the [Solid CLI](https://github.com/solidjs-community/solid-cli)
+This project is licensed under the MIT License.

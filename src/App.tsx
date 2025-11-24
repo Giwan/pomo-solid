@@ -18,6 +18,7 @@ const App: Component = () => {
     activeMode,
     durations,
     isConfigOpen,
+    isAudioEnabled,
     minutes,
     seconds,
     isRunning,
@@ -61,6 +62,7 @@ const App: Component = () => {
       <Show when={isConfigOpen()}>
         <ConfigModal
           durations={durationsInMinutes()}
+          audioEnabled={isAudioEnabled()}
           onCancel={closeConfig}
           onSave={saveConfig}
         />

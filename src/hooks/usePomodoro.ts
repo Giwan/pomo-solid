@@ -12,6 +12,7 @@ import {
     IconPlay,
     IconWork,
 } from "../components/icons";
+import { playNotificationSound } from "../utils/audio";
 import { Mode, ModeDurations, ModeMinutes, MODE_DEFINITIONS } from "../types";
 
 
@@ -37,6 +38,7 @@ const makeTimer = (initialSeconds: number, onFinish?: () => void): TimerHandle =
 
 const STATE_STORAGE_KEY = "pomodoro-state";
 const STORAGE_KEY = "pomodoro-durations";
+const AUDIO_ENABLED_KEY = "pomodoro-audio-enabled";
 
 interface PomodoroState {
     mode: Mode;
@@ -84,11 +86,16 @@ export default function usePomodoro() {
     const savedState = loadFromStorage<PomodoroState>(STATE_STORAGE_KEY);
     const initialMode = savedState?.mode || "work";
     const storedDurations = loadFromStorage<ModeDurations>(STORAGE_KEY) || DEFAULT_DURATIONS;
+    const storedAudioEnabled = loadFromStorage<boolean>(AUDIO_ENABLED_KEY) ?? true;
 
     const [activeMode, setActiveMode] = createSignal<Mode>(initialMode);
     const [durations, setDurations] = createSignal<ModeDurations>(storedDurations);
+    const [isAudioEnabled, setIsAudioEnabled] = createSignal(storedAudioEnabled);
 
     const onTimerFinish = () => {
+        if (isAudioEnabled()) {
+            playNotificationSound();
+        }
         sendNotification(activeMode());
         removeFromStorage(STATE_STORAGE_KEY);
     };
@@ -190,11 +197,13 @@ export default function usePomodoro() {
         saveState(false, durations()[activeMode()]);
     };
 
-    const saveConfig = (minutesMap: ModeMinutes) => {
+    const saveConfig = (minutesMap: ModeMinutes, audioEnabled: boolean) => {
         const nextDurations = toSeconds(minutesMap);
         saveToStorage(STORAGE_KEY, nextDurations);
+        saveToStorage(AUDIO_ENABLED_KEY, audioEnabled);
 
         setDurations(nextDurations);
+        setIsAudioEnabled(audioEnabled);
         replaceTimer(nextDurations[activeMode()], false);
         setIsConfigOpen(false);
     };
@@ -210,6 +219,7 @@ export default function usePomodoro() {
         activeMode,
         durations,
         isConfigOpen,
+        isAudioEnabled,
         minutes,
         seconds,
         isRunning,

@@ -319,3 +319,25 @@
 .progress-bar.active {
   background-color: var(--accent-color);
 }
+
+.modal-option {
+  padding: calc(var(--grid-unit) * 2);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--grid-unit) * 1.5);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 1.2em;
+  height: 1.2em;
+  accent-color: var(--accent-color);
+}

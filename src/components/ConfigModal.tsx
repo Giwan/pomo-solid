@@ -12,8 +12,9 @@ import NumberInput from "./NumberInput";
 
 interface ConfigModalProps {
   durations: ModalDurations;
+  audioEnabled: boolean;
   onCancel: () => void;
-  onSave: (minutes: ModalDurations) => void;
+  onSave: (minutes: ModalDurations, audioEnabled: boolean) => void;
 }
 
 const INPUT_FIELDS = [
@@ -43,9 +44,11 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
   const [values, setValues] = createSignal<ModalDurations>({
     ...props.durations,
   });
+  const [audioEnabled, setAudioEnabled] = createSignal(props.audioEnabled);
 
   createEffect(() => {
     setValues({ ...props.durations });
+    setAudioEnabled(props.audioEnabled);
   });
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -67,7 +70,7 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
-    props.onSave(getSanitizedValues(values()));
+    props.onSave(getSanitizedValues(values()), audioEnabled());
   };
 
   return (
@@ -92,6 +95,17 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
                   />
                 )}
               </For>
+            </div>
+            
+            <div class="modal-option">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={audioEnabled()}
+                  onChange={(e) => setAudioEnabled(e.currentTarget.checked)}
+                />
+                <span>Play sound when timer ends</span>
+              </label>
             </div>
             <ActionButtons onCancel={props.onCancel} />
           </form>
