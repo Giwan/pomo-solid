@@ -2,6 +2,7 @@
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
+import './assets/fonts/fonts.css';
 import './index.css';
 import App from './App';
 
