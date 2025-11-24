@@ -1,6 +1,11 @@
 import { createMemo, createRoot, createSignal, onCleanup } from "solid-js";
 import useTimer from "./useTimer";
 import {
+    loadFromStorage,
+    removeFromStorage,
+    saveToStorage,
+} from "../utils/storage";
+import {
     IconBreak,
     IconLongBreak,
     IconPause,
@@ -31,6 +36,7 @@ const makeTimer = (initialSeconds: number, onFinish?: () => void): TimerHandle =
 };
 
 const STATE_STORAGE_KEY = "pomodoro-state";
+const STORAGE_KEY = "pomodoro-durations";
 
 interface PomodoroState {
     mode: Mode;
@@ -40,64 +46,57 @@ interface PomodoroState {
     lastUpdated: number;
 }
 
-const loadState = (): PomodoroState | null => {
-    try {
-        const stored = localStorage.getItem(STATE_STORAGE_KEY);
-        if (stored) return JSON.parse(stored);
-    } catch (e) {
-        console.warn("Failed to load state", e);
+const calculateInitialState = (
+    savedState: PomodoroState | null,
+    defaultDuration: number
+): { initialTime: number; shouldAutoStart: boolean } => {
+    if (!savedState) {
+        return { initialTime: defaultDuration, shouldAutoStart: false };
     }
-    return null;
-};
 
-const STORAGE_KEY = "pomodoro-durations";
-
-const getStoredDurations = (): ModeDurations => {
-    try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            return JSON.parse(stored);
+    if (savedState.isRunning && savedState.targetEndTime) {
+        const remaining = Math.ceil((savedState.targetEndTime - Date.now()) / 1000);
+        if (remaining > 0) {
+            return { initialTime: remaining, shouldAutoStart: true };
         }
-    } catch (e) {
-        console.warn("Failed to load durations from localStorage", e);
+        return { initialTime: 0, shouldAutoStart: false };
     }
-    return DEFAULT_DURATIONS;
+
+    return { initialTime: savedState.remainingTime, shouldAutoStart: false };
 };
+
+const sendNotification = (mode: Mode) => {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    new Notification("Pomodoro Timer", {
+        body: `${mode === 'work' ? 'Work' : 'Break'} session finished!`,
+        icon: "/pwa-192x192.png"
+    });
+};
+
+const toSeconds = (minutes: ModeMinutes): ModeDurations => ({
+    work: minutes.work * 60,
+    break: minutes.break * 60,
+    longBreak: minutes.longBreak * 60,
+});
 
 export default function usePomodoro() {
-    const savedState = loadState();
+    const savedState = loadFromStorage<PomodoroState>(STATE_STORAGE_KEY);
     const initialMode = savedState?.mode || "work";
+    const storedDurations = loadFromStorage<ModeDurations>(STORAGE_KEY) || DEFAULT_DURATIONS;
 
     const [activeMode, setActiveMode] = createSignal<Mode>(initialMode);
-    const [durations, setDurations] =
-        createSignal<ModeDurations>(getStoredDurations());
+    const [durations, setDurations] = createSignal<ModeDurations>(storedDurations);
 
     const onTimerFinish = () => {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Pomodoro Timer", {
-                body: `${activeMode() === 'work' ? 'Work' : 'Break'} session finished!`,
-                icon: "/pwa-192x192.png"
-            });
-        }
-        localStorage.removeItem(STATE_STORAGE_KEY);
+        sendNotification(activeMode());
+        removeFromStorage(STATE_STORAGE_KEY);
     };
 
-    let initialTime = getStoredDurations()[initialMode];
-    let shouldAutoStart = false;
-
-    if (savedState) {
-        if (savedState.isRunning && savedState.targetEndTime) {
-            const remaining = Math.ceil((savedState.targetEndTime - Date.now()) / 1000);
-            if (remaining > 0) {
-                initialTime = remaining;
-                shouldAutoStart = true;
-            } else {
-                initialTime = 0;
-            }
-        } else {
-            initialTime = savedState.remainingTime;
-        }
-    }
+    const { initialTime, shouldAutoStart } = calculateInitialState(
+        savedState,
+        storedDurations[initialMode]
+    );
 
     const [timerHandle, setTimerHandle] = createSignal<TimerHandle>(
         makeTimer(initialTime, onTimerFinish),
@@ -138,7 +137,7 @@ export default function usePomodoro() {
             remainingTime: remaining,
             lastUpdated: Date.now(),
         };
-        localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(state));
+        saveToStorage(STATE_STORAGE_KEY, state);
     };
 
     const replaceTimer = (seconds: number, autoStart = false) => {
@@ -152,9 +151,10 @@ export default function usePomodoro() {
         if (autoStart && seconds > 0) {
             queueMicrotask(() => next.start());
             saveState(true, seconds);
-        } else {
-            saveState(false, seconds);
+            return;
         }
+
+        saveState(false, seconds);
     };
 
     const setMode = (mode: Mode) => {
@@ -163,9 +163,8 @@ export default function usePomodoro() {
     };
 
     const requestNotificationPermission = () => {
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
-        }
+        if (!("Notification" in window) || Notification.permission !== "default") return;
+        Notification.requestPermission();
     };
 
     const togglePause = () => {
@@ -192,17 +191,8 @@ export default function usePomodoro() {
     };
 
     const saveConfig = (minutesMap: ModeMinutes) => {
-        const nextDurations: ModeDurations = {
-            work: minutesMap.work * 60,
-            break: minutesMap.break * 60,
-            longBreak: minutesMap.longBreak * 60,
-        };
-
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(nextDurations));
-        } catch (e) {
-            console.warn("Failed to save durations to localStorage", e);
-        }
+        const nextDurations = toSeconds(minutesMap);
+        saveToStorage(STORAGE_KEY, nextDurations);
 
         setDurations(nextDurations);
         replaceTimer(nextDurations[activeMode()], false);

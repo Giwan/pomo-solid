@@ -1,4 +1,5 @@
 import { Component } from "solid-js";
+import { formatTimeSegment } from "../utils/formatting";
 
 interface TimerDisplayProps {
   minutes: number;
@@ -6,13 +7,11 @@ interface TimerDisplayProps {
 }
 
 const TimerDisplay: Component<TimerDisplayProps> = (props) => {
-  const format = (val: number) => val.toString().padStart(2, "0");
-
   return (
     <div class="timer-display">
-      <span class="timer-value">{format(props.minutes)}</span>
+      <span class="timer-value">{formatTimeSegment(props.minutes)}</span>
       <span class="timer-separator">:</span>
-      <span class="timer-value">{format(props.seconds)}</span>
+      <span class="timer-value">{formatTimeSegment(props.seconds)}</span>
     </div>
   );
 };

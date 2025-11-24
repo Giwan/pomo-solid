@@ -60,14 +60,10 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
     window.removeEventListener("keydown", handleKeyDown);
   });
 
-  const updateField =
-    (field: keyof ModalDurations) =>
-      (value: number) => {
-        setValues((prev) => ({
-          ...prev,
-          [field]: Number.isNaN(value) ? prev[field] : value,
-        }));
-      };
+  const handleInputChange = (field: keyof ModalDurations, value: number) => {
+    if (Number.isNaN(value)) return;
+    setValues((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
@@ -92,7 +88,7 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
                   <NumberInput
                     field={field}
                     value={values()[field.key]}
-                    onInput={updateField(field.key)}
+                    onInput={(val) => handleInputChange(field.key, val)}
                   />
                 )}
               </For>
