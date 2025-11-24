@@ -6,7 +6,7 @@ import ConfigModal from "./components/ConfigModal";
 import ProgressBar from "./components/ProgressBar";
 import PomHeader from "./components/PomHeader";
 import usePomodoro from "./hooks/usePomodoro";
-import { MODE_DEFINITIONS } from "./types";
+import { MODE_DEFINITIONS, Mode } from "./types";
 import {
   IconReset,
   IconSettings,
@@ -39,53 +39,23 @@ const App: Component = () => {
       <div class="timer-card">
         <PomHeader currentMode={currentMode()} />
 
-        <div class="timer-display-container">
-          <TimerDisplay minutes={minutes()} seconds={seconds()} />
-          <ProgressBar 
-            total={durations()[activeMode()]} 
-            current={time()} 
-            active={isRunning()}
-          />
-        </div>
+        <TimerSection 
+          minutes={minutes()}
+          seconds={seconds()}
+          total={durations()[activeMode()]}
+          current={time()}
+          active={isRunning()}
+        />
 
-        <div class="controls-grid">
-          <For each={MODE_DEFINITIONS}>
-            {(mode) => {
-              const ModeIcon = mode.Icon;
-              return (
-                <TileButton
-                  icon={<ModeIcon />}
-                  label={mode.label}
-                  intent={mode.id}
-                  variant="mode"
-                  active={activeMode() === mode.id}
-                  onClick={() => setMode(mode.id)}
-                />
-              );
-            }}
-          </For>
-          <TileButton
-            icon={<Dynamic component={transportIcon()} />}
-            label={pauseLabel()}
-            intent="neutral"
-            variant="action"
-            onClick={togglePause}
-          />
-          <TileButton
-            icon={<IconReset />}
-            label="Reset"
-            intent="neutral"
-            variant="action"
-            onClick={resetTimer}
-          />
-          <TileButton
-            icon={<IconSettings />}
-            label="Config"
-            intent="neutral"
-            variant="action"
-            onClick={openConfig}
-          />
-        </div>
+        <ControlsSection 
+          activeMode={activeMode()}
+          setMode={setMode}
+          transportIcon={transportIcon()}
+          pauseLabel={pauseLabel()}
+          togglePause={togglePause}
+          resetTimer={resetTimer}
+          openConfig={openConfig}
+        />
       </div>
 
       <Show when={isConfigOpen()}>
@@ -100,3 +70,91 @@ const App: Component = () => {
 };
 
 export default App;
+
+interface TimerSectionProps {
+  minutes: number;
+  seconds: number;
+  total: number;
+  current: number;
+  active: boolean;
+}
+
+const TimerSection: Component<TimerSectionProps> = (props) => {
+  return (
+    <div class="timer-display-container">
+      <ProgressBar 
+        total={props.total} 
+        current={props.current} 
+        active={props.active}
+      />
+      <TimerDisplay minutes={props.minutes} seconds={props.seconds} />
+    </div>
+  );
+};
+
+interface ControlsSectionProps {
+  activeMode: Mode;
+  setMode: (mode: Mode) => void;
+  transportIcon: Component;
+  pauseLabel: string;
+  togglePause: () => void;
+  resetTimer: () => void;
+  openConfig: () => void;
+}
+
+const ControlsSection: Component<ControlsSectionProps> = (props) => {
+  return (
+    <div class="controls-grid">
+      <For each={MODE_DEFINITIONS}>
+        {(mode) => (
+          <ModeControl 
+            mode={mode} 
+            activeMode={props.activeMode} 
+            setMode={props.setMode} 
+          />
+        )}
+      </For>
+      <TileButton
+        icon={<Dynamic component={props.transportIcon} />}
+        label={props.pauseLabel}
+        intent="neutral"
+        variant="action"
+        onClick={props.togglePause}
+      />
+      <TileButton
+        icon={<IconReset />}
+        label="Reset"
+        intent="neutral"
+        variant="action"
+        onClick={props.resetTimer}
+      />
+      <TileButton
+        icon={<IconSettings />}
+        label="Config"
+        intent="neutral"
+        variant="action"
+        onClick={props.openConfig}
+      />
+    </div>
+  );
+};
+
+interface ModeControlProps {
+  mode: typeof MODE_DEFINITIONS[number];
+  activeMode: Mode;
+  setMode: (mode: Mode) => void;
+}
+
+const ModeControl: Component<ModeControlProps> = (props) => {
+  const ModeIcon = props.mode.Icon;
+  return (
+    <TileButton
+      icon={<ModeIcon />}
+      label={props.mode.label}
+      intent={props.mode.id}
+      variant="mode"
+      active={props.activeMode === props.mode.id}
+      onClick={() => props.setMode(props.mode.id)}
+    />
+  );
+};
