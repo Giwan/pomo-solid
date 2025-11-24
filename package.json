@@ -7,15 +7,22 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "license": "MIT",
   "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@vitest/coverage-v8": "^4.0.13",
+    "jsdom": "^27.0.1",
     "solid-devtools": "^0.34.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.4",
     "vite-plugin-pwa": "^1.1.0",
-    "vite-plugin-solid": "^2.11.8"
+    "vite-plugin-solid": "^2.11.8",
+    "vitest": "^4.0.13"
   },
   "dependencies": {
     "phosphor-solid": "^1.1.5",
