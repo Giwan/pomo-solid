@@ -23,6 +23,7 @@ const NumberInput: Component<NumberInputProps> = (props) => {
           step="1"
           value={props.value}
           onInput={(e) => props.onInput(Number(e.currentTarget.value))}
+          onFocus={(e) => e.currentTarget.select()}
           inputMode="numeric"
         />
         <span class="input-suffix">min</span>

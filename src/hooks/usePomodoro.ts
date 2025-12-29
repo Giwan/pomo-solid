@@ -128,7 +128,11 @@ export default function usePomodoro() {
     );
 
     const transportIcon = createMemo(() => (isRunning() ? IconPause : IconPlay));
-    const pauseLabel = createMemo(() => (isRunning() ? "Pause" : "Resume"));
+    const isPristine = createMemo(() => time() === durations()[activeMode()]);
+    const pauseLabel = createMemo(() => {
+        if (isRunning()) return "Pause";
+        return isPristine() ? "Start" : "Resume";
+    });
 
     const durationsInMinutes = createMemo(() => ({
         work: Math.round(durations().work / 60),
@@ -166,7 +170,7 @@ export default function usePomodoro() {
 
     const setMode = (mode: Mode) => {
         setActiveMode(mode);
-        replaceTimer(durations()[mode], true);
+        replaceTimer(durations()[mode], false);
     };
 
     const requestNotificationPermission = () => {

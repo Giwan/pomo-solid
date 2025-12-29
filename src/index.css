@@ -46,3 +46,13 @@ button {
   cursor: pointer;
   color: inherit;
 }
+
+button:focus-visible, 
+input:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+button:active {
+  transform: translateY(1px);
+}

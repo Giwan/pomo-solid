@@ -9,7 +9,7 @@ interface ProgressBarProps {
 const ProgressBar: Component<ProgressBarProps> = (props) => {
   const percentage = createMemo(() => {
     if (props.total === 0) return 0;
-    return (props.current / props.total) * 100;
+    return ((props.total - props.current) / props.total) * 100;
   });
 
   return (
