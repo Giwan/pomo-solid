@@ -9,9 +9,10 @@
   
   /* Spacing & Layout */
   --grid-unit: 8px;
-  --border-width: 2px;
+  --border-width: 1.5px;
   --radius-sm: 4px;
-  --radius-md: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
   
   /* Typography */
   --font-mono: 'Roboto Mono', monospace;

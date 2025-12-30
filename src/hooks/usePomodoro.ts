@@ -1,4 +1,4 @@
-import { createMemo, createRoot, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createRoot, createSignal, onCleanup } from "solid-js";
 import useTimer from "./useTimer";
 import {
     loadFromStorage,
@@ -14,6 +14,8 @@ import {
 } from "../components/icons";
 import { playNotificationSound } from "../utils/audio";
 import { Mode, ModeDurations, ModeMinutes, MODE_DEFINITIONS } from "../types";
+import { updateAppBadge, vibrate } from "../utils/pwa";
+import { isLockActive, releaseWakeLock, requestWakeLock } from "../utils/wakeLock";
 
 
 interface TimerHandle extends ReturnType<typeof useTimer> {
@@ -70,10 +72,14 @@ const calculateInitialState = (
 const sendNotification = (mode: Mode) => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
+    vibrate([200, 100, 200, 100, 400]);
+
     new Notification("Pomodoro Timer", {
         body: `${mode === 'work' ? 'Work' : 'Break'} session finished!`,
-        icon: "/pwa-192x192.png"
-    });
+        icon: "/pwa-192x192.png",
+        vibrate: [200, 100, 200, 100, 400],
+        tag: "pomodoro-alert"
+    } as any);
 };
 
 const toSeconds = (minutes: ModeMinutes): ModeDurations => ({
@@ -92,12 +98,30 @@ export default function usePomodoro() {
     const [durations, setDurations] = createSignal<ModeDurations>(storedDurations);
     const [isAudioEnabled, setIsAudioEnabled] = createSignal(storedAudioEnabled);
 
+    const [wakeLock, setWakeLock] = createSignal<any>(null);
+
+    const acquireLock = async () => {
+        if (isLockActive(wakeLock())) return;
+        const lock = await requestWakeLock();
+        setWakeLock(lock);
+    };
+
+    const releaseLock = async () => {
+        const lock = wakeLock();
+        if (lock) {
+            await releaseWakeLock(lock);
+            setWakeLock(null);
+        }
+    };
+
     const onTimerFinish = () => {
         if (isAudioEnabled()) {
             playNotificationSound();
         }
         sendNotification(activeMode());
         removeFromStorage(STATE_STORAGE_KEY);
+        releaseLock();
+        updateAppBadge(null);
     };
 
     const { initialTime, shouldAutoStart } = calculateInitialState(
@@ -111,6 +135,7 @@ export default function usePomodoro() {
 
     if (shouldAutoStart) {
         timerHandle().start();
+        acquireLock();
     }
     const [isConfigOpen, setIsConfigOpen] = createSignal(false);
 
@@ -120,6 +145,26 @@ export default function usePomodoro() {
     const minutes = createMemo(() => Math.floor(time() / 60));
     const seconds = createMemo(() => time() % 60);
     const isRunning = () => timerHandle().isActive();
+
+    createEffect(() => {
+        if (isRunning() && time() > 0) {
+            updateAppBadge(Math.ceil(time() / 60));
+        } else if (!isRunning() && time() === durations()[activeMode()]) {
+            updateAppBadge(null);
+        }
+    });
+
+    createEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible" && isRunning()) {
+                acquireLock();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        onCleanup(() =>
+            document.removeEventListener("visibilitychange", handleVisibility),
+        );
+    });
 
     const currentMode = createMemo(
         () =>
@@ -162,10 +207,13 @@ export default function usePomodoro() {
         if (autoStart && seconds > 0) {
             queueMicrotask(() => next.start());
             saveState(true, seconds);
+            acquireLock();
             return;
         }
 
+        releaseLock();
         saveState(false, seconds);
+        updateAppBadge(null);
     };
 
     const setMode = (mode: Mode) => {
@@ -189,16 +237,21 @@ export default function usePomodoro() {
         if (isRunning()) {
             timerHandle().pause();
             saveState(false, time());
+            releaseLock();
+            updateAppBadge(null);
             return;
         }
 
         timerHandle().start();
         saveState(true, time());
+        acquireLock();
     };
 
     const resetTimer = () => {
         timerHandle().reset();
         saveState(false, durations()[activeMode()]);
+        releaseLock();
+        updateAppBadge(null);
     };
 
     const saveConfig = (minutesMap: ModeMinutes, audioEnabled: boolean) => {

@@ -3,7 +3,7 @@
   place-items: center;
   min-height: 100vh;
   width: 100%;
-  padding: calc(var(--grid-unit) * 2);
+  padding: calc(var(--grid-unit) * 4);
   gap: calc(var(--grid-unit) * 2);
   max-width: 100%;
   margin: 0 auto;
@@ -15,11 +15,12 @@
   width: 100%;
   max-width: 400px;
   border: var(--border-width) solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background-color: var(--bg-color);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
 }
 
 .timer-header {
@@ -143,12 +144,13 @@
 /* Responsive adjustments */
 @media (min-width: 768px) {
   .app-shell {
-    padding: calc(var(--grid-unit) * 4);
+    padding: calc(var(--grid-unit) * 6);
   }
   
   .timer-card {
-    border-width: 4px;
+    border-width: calc(var(--border-width) * 1.5);
     max-width: 480px;
+    border-radius: var(--radius-md);
   }
 
   .controls-grid {
