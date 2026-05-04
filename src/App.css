@@ -2,11 +2,14 @@
   display: grid;
   place-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  padding: calc(var(--grid-unit) * 4);
+  padding: calc(var(--grid-unit) * 2);
   gap: calc(var(--grid-unit) * 2);
   max-width: 100%;
   margin: 0 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .timer-card {
@@ -100,11 +103,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--grid-unit) * 2);
+  padding: calc(var(--grid-unit) * 1.5);
   background-color: var(--bg-color);
   transition: all 0.1s ease;
   height: 100%;
-  min-height: 80px;
+  min-height: 64px;
   width: 100%;
 }
 
@@ -161,7 +164,7 @@
 
 /* Timer Display Styles */
 .timer-display {
-  font-size: clamp(4rem, 15vw, 8rem);
+  font-size: clamp(3rem, 12vw, 8rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.05em;
@@ -186,12 +189,15 @@
   left: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 100;
   backdrop-filter: blur(4px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-panel {
