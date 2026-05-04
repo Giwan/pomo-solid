@@ -19,6 +19,7 @@ const App: Component = () => {
     durations,
     isConfigOpen,
     isAudioEnabled,
+    flashWarningSeconds,
     minutes,
     seconds,
     isRunning,
@@ -63,6 +64,7 @@ const App: Component = () => {
         <ConfigModal
           durations={durationsInMinutes()}
           audioEnabled={isAudioEnabled()}
+          flashWarningSeconds={flashWarningSeconds()}
           onCancel={closeConfig}
           onSave={saveConfig}
         />

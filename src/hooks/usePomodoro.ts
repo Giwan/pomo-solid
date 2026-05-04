@@ -14,7 +14,7 @@ import {
 } from "../components/icons";
 import { playNotificationSound } from "../utils/audio";
 import { Mode, ModeDurations, ModeMinutes, MODE_DEFINITIONS } from "../types";
-import { updateAppBadge, vibrate } from "../utils/pwa";
+import { flashScreen, updateAppBadge, vibrate } from "../utils/pwa";
 import { isLockActive, releaseWakeLock, requestWakeLock } from "../utils/wakeLock";
 
 
@@ -41,6 +41,31 @@ const makeTimer = (initialSeconds: number, onFinish?: () => void): TimerHandle =
 const STATE_STORAGE_KEY = "pomodoro-state";
 const STORAGE_KEY = "pomodoro-durations";
 const AUDIO_ENABLED_KEY = "pomodoro-audio-enabled";
+const FLASH_WARNING_KEY = "pomodoro-flash-warning";
+
+const DEFAULT_FLASH_WARNING = 5;
+
+interface PersistedConfig {
+    durations: ModeDurations;
+    audioEnabled: boolean;
+    flashWarningSeconds: number;
+}
+
+const loadPersistedConfig = (): PersistedConfig => ({
+    durations: loadFromStorage<ModeDurations>(STORAGE_KEY) || DEFAULT_DURATIONS,
+    audioEnabled: loadFromStorage<boolean>(AUDIO_ENABLED_KEY) ?? true,
+    flashWarningSeconds: loadFromStorage<number>(FLASH_WARNING_KEY) ?? DEFAULT_FLASH_WARNING,
+});
+
+const savePersistedConfig = (
+    durations: ModeDurations,
+    audioEnabled: boolean,
+    flashWarning: number
+) => {
+    saveToStorage(STORAGE_KEY, durations);
+    saveToStorage(AUDIO_ENABLED_KEY, audioEnabled);
+    saveToStorage(FLASH_WARNING_KEY, flashWarning);
+};
 
 interface PomodoroState {
     mode: Mode;
@@ -82,51 +107,77 @@ const sendNotification = (mode: Mode) => {
     } as any);
 };
 
+const createWakeLockManager = () => {
+    const [lock, setLock] = createSignal<any>(null);
+
+    const acquire = async () => {
+        if (isLockActive(lock())) return;
+        const newLock = await requestWakeLock();
+        setLock(newLock);
+    };
+
+    const release = async () => {
+        const current = lock();
+        if (current) {
+            await releaseWakeLock(current);
+            setLock(null);
+        }
+    };
+
+    return { lock, acquire, release };
+};
+
 const toSeconds = (minutes: ModeMinutes): ModeDurations => ({
     work: minutes.work * 60,
     break: minutes.break * 60,
     longBreak: minutes.longBreak * 60,
 });
 
+const getModeDefinition = (mode: Mode) =>
+    MODE_DEFINITIONS.find((m) => m.id === mode) ?? MODE_DEFINITIONS[0];
+
+const createFlashOnLowTime = (
+    time: () => number,
+    isRunning: () => boolean,
+    flashThreshold: () => number
+) => {
+    let lastFlashedSecond = -1;
+    createEffect(() => {
+        const t = time();
+        const threshold = flashThreshold();
+        if (isRunning() && t > 0 && t <= threshold && t !== lastFlashedSecond) {
+            lastFlashedSecond = t;
+            flashScreen();
+        }
+        if (t > threshold) {
+            lastFlashedSecond = -1;
+        }
+    });
+};
+
 export default function usePomodoro() {
     const savedState = loadFromStorage<PomodoroState>(STATE_STORAGE_KEY);
+    const config = loadPersistedConfig();
     const initialMode = savedState?.mode || "work";
-    const storedDurations = loadFromStorage<ModeDurations>(STORAGE_KEY) || DEFAULT_DURATIONS;
-    const storedAudioEnabled = loadFromStorage<boolean>(AUDIO_ENABLED_KEY) ?? true;
 
     const [activeMode, setActiveMode] = createSignal<Mode>(initialMode);
-    const [durations, setDurations] = createSignal<ModeDurations>(storedDurations);
-    const [isAudioEnabled, setIsAudioEnabled] = createSignal(storedAudioEnabled);
+    const [durations, setDurations] = createSignal<ModeDurations>(config.durations);
+    const [isAudioEnabled, setIsAudioEnabled] = createSignal(config.audioEnabled);
+    const [flashWarningSeconds, setFlashWarningSeconds] = createSignal(config.flashWarningSeconds);
 
-    const [wakeLock, setWakeLock] = createSignal<any>(null);
-
-    const acquireLock = async () => {
-        if (isLockActive(wakeLock())) return;
-        const lock = await requestWakeLock();
-        setWakeLock(lock);
-    };
-
-    const releaseLock = async () => {
-        const lock = wakeLock();
-        if (lock) {
-            await releaseWakeLock(lock);
-            setWakeLock(null);
-        }
-    };
+    const wakeLock = createWakeLockManager();
 
     const onTimerFinish = () => {
-        if (isAudioEnabled()) {
-            playNotificationSound();
-        }
+        if (isAudioEnabled()) playNotificationSound();
         sendNotification(activeMode());
         removeFromStorage(STATE_STORAGE_KEY);
-        releaseLock();
+        wakeLock.release();
         updateAppBadge(null);
     };
 
     const { initialTime, shouldAutoStart } = calculateInitialState(
         savedState,
-        storedDurations[initialMode]
+        config.durations[initialMode]
     );
 
     const [timerHandle, setTimerHandle] = createSignal<TimerHandle>(
@@ -135,7 +186,7 @@ export default function usePomodoro() {
 
     if (shouldAutoStart) {
         timerHandle().start();
-        acquireLock();
+        wakeLock.acquire();
     }
     const [isConfigOpen, setIsConfigOpen] = createSignal(false);
 
@@ -157,7 +208,7 @@ export default function usePomodoro() {
     createEffect(() => {
         const handleVisibility = () => {
             if (document.visibilityState === "visible" && isRunning()) {
-                acquireLock();
+                wakeLock.acquire();
             }
         };
         document.addEventListener("visibilitychange", handleVisibility);
@@ -166,11 +217,9 @@ export default function usePomodoro() {
         );
     });
 
-    const currentMode = createMemo(
-        () =>
-            MODE_DEFINITIONS.find((mode) => mode.id === activeMode()) ??
-            MODE_DEFINITIONS[0],
-    );
+    createFlashOnLowTime(time, isRunning, flashWarningSeconds);
+
+    const currentMode = createMemo(() => getModeDefinition(activeMode()));
 
     const transportIcon = createMemo(() => (isRunning() ? IconPause : IconPlay));
     const isPristine = createMemo(() => time() === durations()[activeMode()]);
@@ -207,11 +256,11 @@ export default function usePomodoro() {
         if (autoStart && seconds > 0) {
             queueMicrotask(() => next.start());
             saveState(true, seconds);
-            acquireLock();
+            wakeLock.acquire();
             return;
         }
 
-        releaseLock();
+        wakeLock.release();
         saveState(false, seconds);
         updateAppBadge(null);
     };
@@ -237,30 +286,30 @@ export default function usePomodoro() {
         if (isRunning()) {
             timerHandle().pause();
             saveState(false, time());
-            releaseLock();
+            wakeLock.release();
             updateAppBadge(null);
             return;
         }
 
         timerHandle().start();
         saveState(true, time());
-        acquireLock();
+        wakeLock.acquire();
     };
 
     const resetTimer = () => {
         timerHandle().reset();
         saveState(false, durations()[activeMode()]);
-        releaseLock();
+        wakeLock.release();
         updateAppBadge(null);
     };
 
-    const saveConfig = (minutesMap: ModeMinutes, audioEnabled: boolean) => {
+    const saveConfig = (minutesMap: ModeMinutes, audioEnabled: boolean, flashWarning: number) => {
         const nextDurations = toSeconds(minutesMap);
-        saveToStorage(STORAGE_KEY, nextDurations);
-        saveToStorage(AUDIO_ENABLED_KEY, audioEnabled);
+        savePersistedConfig(nextDurations, audioEnabled, flashWarning);
 
         setDurations(nextDurations);
         setIsAudioEnabled(audioEnabled);
+        setFlashWarningSeconds(flashWarning);
         replaceTimer(nextDurations[activeMode()], false);
         setIsConfigOpen(false);
     };
@@ -277,6 +326,7 @@ export default function usePomodoro() {
         durations,
         isConfigOpen,
         isAudioEnabled,
+        flashWarningSeconds,
         minutes,
         seconds,
         isRunning,

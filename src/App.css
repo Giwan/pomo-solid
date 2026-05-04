@@ -343,3 +343,28 @@
   height: 1.2em;
   accent-color: var(--accent-color);
 }
+
+.number-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.number-input {
+  width: 60px;
+  padding: calc(var(--grid-unit) * 1);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  text-align: center;
+  border: var(--border-width) solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}

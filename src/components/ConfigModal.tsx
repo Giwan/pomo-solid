@@ -13,8 +13,9 @@ import NumberInput from "./NumberInput";
 interface ConfigModalProps {
   durations: ModalDurations;
   audioEnabled: boolean;
+  flashWarningSeconds: number;
   onCancel: () => void;
-  onSave: (minutes: ModalDurations, audioEnabled: boolean) => void;
+  onSave: (minutes: ModalDurations, audioEnabled: boolean, flashWarning: number) => void;
 }
 
 const INPUT_FIELDS = [
@@ -45,10 +46,12 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
     ...props.durations,
   });
   const [audioEnabled, setAudioEnabled] = createSignal(props.audioEnabled);
+  const [flashWarning, setFlashWarning] = createSignal(props.flashWarningSeconds);
 
   createEffect(() => {
     setValues({ ...props.durations });
     setAudioEnabled(props.audioEnabled);
+    setFlashWarning(props.flashWarningSeconds);
   });
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -68,9 +71,24 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
     setValues((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFlashWarningChange = (e: InputEvent) => {
+    const val = parseInt((e.target as HTMLInputElement).value, 10);
+    if (!Number.isNaN(val) && val >= 1 && val <= 30) {
+      setFlashWarning(val);
+    }
+  };
+
+  const handleAudioEnabledChange = (e: Event) => {
+    setAudioEnabled((e.target as HTMLInputElement).checked);
+  };
+
+  const handlePanelClick = (e: MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const handleSubmit = (event: Event) => {
     event.preventDefault();
-    props.onSave(getSanitizedValues(values()), audioEnabled());
+    props.onSave(getSanitizedValues(values()), audioEnabled(), flashWarning());
   };
 
   return (
@@ -81,7 +99,7 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="config-modal-title"
-          onClick={(event) => event.stopPropagation()}
+          onClick={handlePanelClick}
         >
           <ModalHeader />
           <form class="modal-form" onSubmit={handleSubmit}>
@@ -102,9 +120,22 @@ const ConfigModal: Component<ConfigModalProps> = (props) => {
                 <input
                   type="checkbox"
                   checked={audioEnabled()}
-                  onChange={(e) => setAudioEnabled(e.currentTarget.checked)}
+                  onChange={handleAudioEnabledChange}
                 />
                 <span>Play sound when timer ends</span>
+              </label>
+            </div>
+            <div class="modal-option">
+              <label class="number-label">
+                <span>Flash warning (seconds)</span>
+                <input
+                  type="number"
+                  class="number-input"
+                  min="1"
+                  max="30"
+                  value={flashWarning()}
+                  onInput={handleFlashWarningChange}
+                />
               </label>
             </div>
             <ActionButtons onCancel={props.onCancel} />

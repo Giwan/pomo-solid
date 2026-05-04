@@ -31,3 +31,7 @@ export type TField =
         readonly label: "Long Break";
     };
 
+export type FlashConfig = {
+    flashWarningSeconds: number;
+};
+

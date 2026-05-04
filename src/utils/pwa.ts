@@ -10,7 +10,23 @@ const getNavigator = () => (typeof navigator !== "undefined" ? navigator : null)
  * @param pattern - Duration(s) in ms to vibrate.
  */
 export const vibrate = (pattern: number | number[] = [200, 100, 200]) => {
-    getNavigator()?.vibrate?.(pattern);
+    const nav = getNavigator();
+    if (nav?.vibrate) {
+        nav.vibrate(pattern);
+    } else {
+        flashScreen();
+    }
+};
+
+export const flashScreen = () => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    if (!body) return;
+    body.style.transition = "background-color 0.1s";
+    body.style.backgroundColor = "#ff3b30";
+    setTimeout(() => {
+        body.style.backgroundColor = "";
+    }, 300);
 };
 
 /**

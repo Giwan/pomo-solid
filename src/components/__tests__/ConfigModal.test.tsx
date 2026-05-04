@@ -6,6 +6,7 @@ describe('ConfigModal', () => {
   const defaultProps = {
     durations: { work: 25, break: 5, longBreak: 15 },
     audioEnabled: true,
+    flashWarningSeconds: 5,
     onCancel: vi.fn(),
     onSave: vi.fn(),
   };
@@ -40,7 +41,8 @@ describe('ConfigModal', () => {
     
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ work: 25 }),
-      false // audioEnabled should be false
+      false, // audioEnabled should be false
+      5 // flashWarningSeconds
     );
   });
 });
